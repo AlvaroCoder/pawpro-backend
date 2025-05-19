@@ -9,6 +9,7 @@
     require_once 'app/controllers/CategoriaController.php';
 
     $request = $_SERVER['REQUEST_URI'];
+    echo $request;
     $method = $_SERVER['REQUEST_METHOD'];
 
     switch ($request) {
