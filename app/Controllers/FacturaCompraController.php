@@ -6,7 +6,7 @@ class FacturaCompraController {
         // 1. Obtener los datos del cuerpo de la solicitud (payload JSON)
         $data = json_decode(file_get_contents("php://input"));
 
-        // 2. Validación básica de datos (muy simple por ahora)
+        // 2. Validación básica de datos 
         if (is_null($data)) { // json_decode devuelve null si el JSON es inválido
             http_response_code(400); // Bad Request
             echo json_encode(['message' => 'Error: El JSON enviado es inválido.']);
@@ -23,7 +23,7 @@ class FacturaCompraController {
         }
 
         // Si llegamos aquí, los datos básicos parecen estar presentes.
-        // Por ahora, solo devolvemos los datos recibidos para confirmar que el endpoint funciona.
+        // Confirmar que el endpoint funciona.
         http_response_code(200); // OK
         echo json_encode([
             'message' => 'Endpoint /api/facturas-compra alcanzado. Datos recibidos (procesamiento pendiente).',
