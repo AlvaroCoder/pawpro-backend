@@ -7,9 +7,9 @@
 
     require_once 'config/database.php';
     require_once 'app/controllers/CategoriaController.php';
+        require_once 'app/controllers/FacturaCompraController.php'; 
 
     $request = $_SERVER['REQUEST_URI'];
-    echo $request;
     $method = $_SERVER['REQUEST_METHOD'];
 
     switch ($request) {
@@ -22,10 +22,21 @@
                 echo json_encode(["message"=> "Metodo no permitido"]);
             }
             break;
+        case '/api/facturas-compra':
+            if ($method === 'POST') {
+                $controller = new FacturaCompraController();
+                $controller->registrarNuevaFactura();
+            } else {
+                http_response_code(405);
+                echo json_encode(["message"=> "Metodo no permitido para esta ruta"]);
+            }
+            break;
         
         default:
             http_response_code(404);
             echo json_encode(["message" => "Ruta no encontrada"]);
             break;
     }
+
+
 ?>
