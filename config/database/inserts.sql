@@ -127,3 +127,28 @@ INSERT INTO LotesProducto (
 ) VALUES (
     3, 'LOTE-FRP001', 50, '2027-01-15', 28.00, '2025-05-19'
 );
+-- -----------------------------------------------------
+-- Insertar Proveedores
+-- -----------------------------------------------------
+
+INSERT INTO Proveedores (ruc, razon_social, ciudad, direccion, telefono_representante, correo_electronico, productos_distribuidos, estado) VALUES
+('20100062029', 'DISTRIBUIDORA VETERINARIA DEL NORTE S.A.C.', 'Trujillo', 'Av. España 1234, Centro Cívico', '044-200100', 'ventas@divetnorte.com.pe', 'Medicamentos veterinarios, alimentos balanceados, accesorios para mascotas.', 'activo'),
+('20506070801', 'AGROVET MARKET ANIMAL HEALTH', 'Lima', 'Av. El Derby 254, Santiago de Surco', '01-6107900', 'contacto@agrovetmarket.com', 'Productos farmacéuticos y nutricionales para uso veterinario.', 'activo'),
+('10458877221', 'IMPORTACIONES VET PERÚ E.I.R.L.', 'Arequipa', 'Calle Mercaderes 456, Cercado', '054-280510', 'info@vetperuimport.com', 'Equipamiento médico veterinario, insumos quirúrgicos.', 'activo'),
+('20304050607', 'PET FOODS DEL PERÚ S.R.L.', 'Lima', 'Calle Los Alamos 321, Miraflores', '01-4478899', 'pedidos@petfoods.com.pe', 'Alimentos premium para perros y gatos, snacks.', 'inactivo');
+
+
+-- -----------------------------------------------------
+-- Insertar Roles
+-- -----------------------------------------------------
+INSERT INTO Roles (nombre_rol, descripcion) VALUES
+('Administrador', 'Acceso completo al sistema'),
+('Encargado Almacen', 'Gestiona inventario, compras y despachos'),
+('Vendedor', 'Registra ventas y gestiona clientes');
+
+-- -----------------------------------------------------
+-- Insertar Usuarios
+-- -----------------------------------------------------
+INSERT INTO Usuarios (nombre_usuario, nombre_acceso, contraseña_hash, correo_electronico, rol_id, estado) VALUES
+('Admin Principal', 'admin', 'contraseña_segura_hash', 'admin@pawpro.vet', 1, 'activo'),
+('Juan Perez Almacen', 'jalmacen', 'otra_contraseña_hash', 'jalmacen@pawpro.vet', 2, 'activo');
