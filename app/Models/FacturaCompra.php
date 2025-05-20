@@ -3,6 +3,8 @@
 class FacturaCompra {
     private $conn;
     private $table_name = "FacturasCompra"; // Nombre de la tabla de encabezados de factura
+    private $table_name_details = "DetallesFacturaCompra";
+
 
     // Propiedades del objeto FacturaCompra (corresponden a las columnas de la tabla)
     public $factura_compra_id;
@@ -57,6 +59,45 @@ class FacturaCompra {
         // printf("Error: %s.\n", $stmt->error); 
         return false;
     }
+    // --- MÉTODO PARA CREAR UN DETALLE DE FACTURA ---
+public function crearDetalle($factura_id, $lote_id_param, $producto_id_param, $cantidad_param, $precio_compra_param) {
+    $query = "INSERT INTO " . $this->table_name_details . " SET
+                factura_compra_id=:factura_compra_id,
+                lote_id=:lote_id,
+                producto_id=:producto_id,
+                cantidad_comprada=:cantidad_comprada,
+                precio_compra_unitario_factura=:precio_compra_unitario_factura,
+                subtotal=:subtotal";
+
+    $stmt = $this->conn->prepare($query);
+
+    // Sanitizar datos
+    $factura_id_clean = htmlspecialchars(strip_tags($factura_id));
+    $lote_id_clean = htmlspecialchars(strip_tags($lote_id_param));
+    $producto_id_clean = htmlspecialchars(strip_tags($producto_id_param));
+    $cantidad_clean = htmlspecialchars(strip_tags($cantidad_param));
+    $precio_compra_clean = htmlspecialchars(strip_tags($precio_compra_param));
+
+    // Calcular subtotal
+    $subtotal_calculado = floatval($cantidad_clean) * floatval($precio_compra_clean); // Asegurar que sean números
+
+    // Vincular parámetros
+    $stmt->bindParam(":factura_compra_id", $factura_id_clean);
+    $stmt->bindParam(":lote_id", $lote_id_clean);
+    $stmt->bindParam(":producto_id", $producto_id_clean);
+    $stmt->bindParam(":cantidad_comprada", $cantidad_clean); 
+    $stmt->bindParam(":precio_compra_unitario_factura", $precio_compra_clean);
+    $stmt->bindParam(":subtotal", $subtotal_calculado);
+
+    if ($stmt->execute()) {
+        return true;
+    }
+    // Si falla, la excepción PDO será capturada por el controlador si está configurado así.
+    // Opcionalmente, loguear error aquí:
+    // $errorInfo = $stmt->errorInfo();
+    // error_log("Error al crear detalle de factura: " . $errorInfo[2]);
+    return false;
+}
 
 
 }
