@@ -75,5 +75,56 @@ class ProductoController {
             echo json_encode(['message' => 'Error general al crear el producto: ' . $e->getMessage()]);
         }
     }
+     // --- MÉTODO PARA LISTAR PRODUCTOS ---
+    public function listarProductos() {
+        $database = new Database();
+        $conn = $database->getConnection();
+
+        if (!$conn) {
+            http_response_code(503); // Service Unavailable
+            echo json_encode(['message' => 'No se pudo conectar a la base de datos.']);
+            return;
+        }
+
+        $productoModel = new Producto($conn);
+        $stmt = $productoModel->getAll();
+        $num_rows = $stmt->rowCount();
+
+        if ($num_rows > 0) {
+            $productos_arr = array();
+            // $productos_arr["records"] = array(); // Opcional, para anidar bajo una clave "records"
+
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                extract($row); // Extrae las columnas a variables ($producto_id, $nombre_producto, etc.)
+                $producto_item = array(
+                    "producto_id" => $producto_id,
+                    "codigo_producto" => $codigo_producto,
+                    "nombre_producto" => $nombre_producto,
+                    "descripcion" => $descripcion,
+                    "marca_id" => $marca_id,
+                    "nombre_marca" => $nombre_marca,
+                    "precio_venta_unitario" => $precio_venta_unitario,
+                    "stock_minimo" => $stock_minimo,
+                    "stock_maximo" => $stock_maximo,
+                    "unidad_medida" => $unidad_medida,
+                    "estado" => $estado,
+                    "subcategoria_id" => $subcategoria_id,
+                    "nombre_subcategoria" => $nombre_subcategoria,
+                    "presentacion_id" => $presentacion_id,
+                    "nombre_presentacion" => $nombre_presentacion,
+                    "fecha_creacion" => $fecha_creacion,
+                    "fecha_modificacion" => $fecha_modificacion
+                );
+                // array_push($productos_arr["records"], $producto_item); // Si usas la clave "records"
+                array_push($productos_arr, $producto_item); // Directamente al array principal
+            }
+            http_response_code(200); // OK
+            echo json_encode($productos_arr);
+        } else {
+            http_response_code(404); // Not Found
+            echo json_encode(["message" => "No se encontraron productos."]);
+        }
+    }
+    // --- FIN MÉTODO NUEVO ---
 }
 ?>

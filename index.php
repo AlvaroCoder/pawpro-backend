@@ -37,8 +37,12 @@
             if ($method === 'POST') {
                 $controller = new ProductoController();
                 $controller->crearNuevoProducto(); // Método que crearemos
+            } 
+            elseif ($method === 'GET') { // Manejo para GET /api/productos (listar)
+                $controller = new ProductoController();
+                $controller->listarProductos(); 
             } else {
-                // Aquí podrías añadir manejo para GET /api/productos (listar), GET /api/productos/{id} (ver uno), etc.
+                // Aquí podrías añadir GET /api/productos/{id} (ver uno), etc.
                 http_response_code(405);
                 echo json_encode(["message"=> "Metodo no permitido para /api/productos en esta etapa. Solo POST para crear."]);
             }

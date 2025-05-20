@@ -23,7 +23,7 @@ class Producto {
         $this->conn = $db_connection;
     }
 
-    // Método para crear un nuevo producto
+    // Método para crear un nuevo producto POST
     public function crear() {
         $query = "INSERT INTO " . $this->table_name . " SET
                     codigo_producto=:codigo_producto,
@@ -75,6 +75,38 @@ class Producto {
         return false;
     }
 
-    // Podríamos añadir aquí un método para buscar por codigo_producto si es necesario
+    // Método para listar productos GET
+    public function getAll() {
+        $query = "SELECT
+                    p.producto_id,
+                    p.codigo_producto,
+                    p.nombre_producto,
+                    p.descripcion,
+                    p.marca_id,
+                    m.nombre_marca,
+                    p.precio_venta_unitario,
+                    p.stock_minimo,
+                    p.stock_maximo,
+                    p.unidad_medida,
+                    p.estado,
+                    p.subcategoria_id,
+                    s.nombre_subcategoria,
+                    p.presentacion_id,
+                    pr.nombre_presentacion,
+                    p.fecha_creacion,
+                    p.fecha_modificacion
+                FROM
+                    " . $this->table_name . " p
+                    LEFT JOIN Marcas m ON p.marca_id = m.marca_id
+                    LEFT JOIN Subcategoria s ON p.subcategoria_id = s.id_subcategoria
+                    LEFT JOIN Presentacion pr ON p.presentacion_id = pr.id_presentacion
+                ORDER BY
+                    p.nombre_producto ASC";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+
+        return $stmt; // Devolvemos el statement para que el controlador haga el fetch (Obtener, recuperar datos del servidor)
+    }
 }
 ?>
