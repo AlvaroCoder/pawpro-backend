@@ -11,9 +11,13 @@
     require_once 'app/controllers/ProductoController.php';
 
     $request = $_SERVER['REQUEST_URI'];
+    // Limpiamos la URI para quitar los parámetros de consulta (query string)
+    // y obtener solo la ruta base para el switch.
+    $requestPath = strtok($request, '?');
+
     $method = $_SERVER['REQUEST_METHOD'];
 
-    switch ($request) {
+    switch ($requestPath) {
         case '/api/categorias':
             if ($method === 'GET') {
                 $contoller = new CategoriaController();
@@ -45,12 +49,15 @@
                 // Aquí podrías añadir GET /api/productos/{id} (ver uno), etc.
                 http_response_code(405);
                 echo json_encode(["message"=> "Metodo no permitido para /api/productos en esta etapa. Solo POST para crear."]);
+                
+            
             }
             break;
         
         default:
             http_response_code(404);
             echo json_encode(["message" => "Ruta no encontrada"]);
+            
             break;
     }
 

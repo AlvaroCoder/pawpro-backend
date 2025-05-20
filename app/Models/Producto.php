@@ -108,5 +108,50 @@ class Producto {
 
         return $stmt; // Devolvemos el statement para que el controlador haga el fetch (Obtener, recuperar datos del servidor)
     }
+
+     // --- MÉTODO PARA BUSCAR UN PRODUCTO POR SU CÓDIGO ---
+
+    public function buscarPorCodigo($codigo_producto_param) {
+        $query = "SELECT
+                    p.producto_id,
+                    p.codigo_producto,
+                    p.nombre_producto,
+                    p.descripcion,
+                    p.marca_id,
+                    m.nombre_marca,
+                    p.precio_venta_unitario,
+                    p.stock_minimo,
+                    p.stock_maximo,
+                    p.unidad_medida,
+                    p.estado,
+                    p.subcategoria_id,
+                    s.nombre_subcategoria,
+                    p.presentacion_id,
+                    pr.nombre_presentacion,
+                    p.fecha_creacion,
+                    p.fecha_modificacion
+                FROM
+                    " . $this->table_name . " p
+                    LEFT JOIN Marcas m ON p.marca_id = m.marca_id
+                    LEFT JOIN Subcategoria s ON p.subcategoria_id = s.id_subcategoria
+                    LEFT JOIN Presentacion pr ON p.presentacion_id = pr.id_presentacion
+                WHERE
+                    p.codigo_producto = :codigo_producto
+                LIMIT 1"; // Esperamos solo un resultado ya que codigo_producto es UNIQUE
+
+        $stmt = $this->conn->prepare($query);
+
+        // Limpiar el parámetro de entrada (eliminar espacios al inicio/final)
+        $codigo_limpio = trim($codigo_producto_param);
+        $stmt->bindParam(":codigo_producto", $codigo_limpio);
+
+        $stmt->execute(); // Si hay un error SQL aquí, PDO lanzará una excepción
+
+        // Obtener la fila como un array asociativo
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // $row será false si no se encontró ninguna fila
+        return $row;
+    }
 }
 ?>

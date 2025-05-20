@@ -87,12 +87,28 @@ class ProductoController {
         }
 
         $productoModel = new Producto($conn);
+
+        // Verificar si se ha pasado el parámetro 'codigo_producto' en la URL
+        if (isset($_GET['codigo_producto']) && !empty($_GET['codigo_producto'])) {
+            $codigo_buscado = $_GET['codigo_producto'];
+            $producto_encontrado = $productoModel->buscarPorCodigo($codigo_buscado);
+
+            if ($producto_encontrado) {
+                http_response_code(200); // OK
+                echo json_encode($producto_encontrado);
+            } else {
+                http_response_code(404); // Not Found
+                echo json_encode(["message" => "Producto con código '" . htmlspecialchars($codigo_buscado) . "' no encontrado."]);
+            }
+        } else {
+            // Si no se especifica código_producto, listar todos los productos
+
         $stmt = $productoModel->getAll();
         $num_rows = $stmt->rowCount();
 
         if ($num_rows > 0) {
             $productos_arr = array();
-            // $productos_arr["records"] = array(); // Opcional, para anidar bajo una clave "records"
+
 
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 extract($row); // Extrae las columnas a variables ($producto_id, $nombre_producto, etc.)
@@ -115,7 +131,7 @@ class ProductoController {
                     "fecha_creacion" => $fecha_creacion,
                     "fecha_modificacion" => $fecha_modificacion
                 );
-                // array_push($productos_arr["records"], $producto_item); // Si usas la clave "records"
+
                 array_push($productos_arr, $producto_item); // Directamente al array principal
             }
             http_response_code(200); // OK
@@ -124,7 +140,7 @@ class ProductoController {
             http_response_code(404); // Not Found
             echo json_encode(["message" => "No se encontraron productos."]);
         }
-    }
-    // --- FIN MÉTODO NUEVO ---
+    }}
+    
 }
 ?>
