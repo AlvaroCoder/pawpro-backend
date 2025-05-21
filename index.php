@@ -7,11 +7,17 @@
 
     require_once 'config/database.php';
     require_once 'app/controllers/ControladorGet.php';
+    require_once 'app/controllers/ControladorLogin.php';
 
     $request = $_SERVER['REQUEST_URI'];
     $method = $_SERVER['REQUEST_METHOD'];
 
     switch ($request) {
+        case '/api/login':
+            if ($method==='GET'){
+                $controller= new AuthController();
+                $controller->login();
+            }
         case '/api/categorias':
             if ($method === 'GET') {
                 $contoller = new Controlador();
