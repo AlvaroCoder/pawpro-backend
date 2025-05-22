@@ -98,6 +98,98 @@ public function crearDetalle($factura_id, $lote_id_param, $producto_id_param, $c
     // error_log("Error al crear detalle de factura: " . $errorInfo[2]);
     return false;
 }
+// -- Método para obtener las facturas
+public function getAllHeaders() {
+    $query = "SELECT
+                fc.factura_compra_id,
+                fc.numero_factura,
+                fc.proveedor_id,
+                prov.razon_social AS proveedor_razon_social,
+                fc.fecha_compra,
+                fc.fecha_registro,
+                fc.usuario_id,
+                u.nombre_usuario AS usuario_nombre_registro,
+                fc.monto_total,
+                fc.estado,
+                fc.observaciones,
+                fc.fecha_creacion AS factura_fecha_creacion,
+                fc.fecha_modificacion AS factura_fecha_modificacion
+            FROM
+                " . $this->table_name . " fc
+                LEFT JOIN Proveedores prov ON fc.proveedor_id = prov.proveedor_id
+                LEFT JOIN Usuarios u ON fc.usuario_id = u.usuario_id
+            ORDER BY
+                fc.fecha_compra DESC, fc.factura_compra_id DESC";
+
+    $stmt = $this->conn->prepare($query);
+    $stmt->execute();
+
+    return $stmt; // Devolvemos el statement para que el controlador haga el fetch
+}
+// --- MÉTODO PARA OBTENER EL ENCABEZADO DE UNA FACTURA POR SU ID ---
+    public function getHeaderById($id) {
+        $query = "SELECT
+                    fc.factura_compra_id,
+                    fc.numero_factura,
+                    fc.proveedor_id,
+                    prov.razon_social AS proveedor_razon_social,
+                    fc.fecha_compra,
+                    fc.fecha_registro,
+                    fc.usuario_id,
+                    u.nombre_usuario AS usuario_nombre_registro,
+                    fc.monto_total,
+                    fc.estado,
+                    fc.observaciones,
+                    fc.fecha_creacion AS factura_fecha_creacion,
+                    fc.fecha_modificacion AS factura_fecha_modificacion
+                FROM
+                    " . $this->table_name . " fc
+                    LEFT JOIN Proveedores prov ON fc.proveedor_id = prov.proveedor_id
+                    LEFT JOIN Usuarios u ON fc.usuario_id = u.usuario_id
+                WHERE
+                    fc.factura_compra_id = :id
+                LIMIT 1";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":id", $id);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC); // Devuelve una fila o false si no se encuentra
+    }
+
+    // --- MÉTODO PARA OBTENER LOS DETALLES (ITEMS) DE UNA FACTURA POR SU ID ---
+    public function getDetailsByInvoiceId($factura_compra_id) {
+        $query = "SELECT
+                    dfc.detalle_factura_id,
+                    dfc.producto_id,
+                    p.codigo_producto,
+                    p.nombre_producto,
+                    p.unidad_medida AS producto_unidad_medida,
+                    m.nombre_marca AS producto_nombre_marca,
+                    dfc.lote_id,
+                    lp.codigo_lote,
+                    lp.fecha_vencimiento AS lote_fecha_vencimiento,
+                    lp.precio_compra_unitario AS lote_precio_compra_original, 
+                    dfc.cantidad_comprada,
+                    dfc.precio_compra_unitario_factura,
+                    dfc.subtotal
+                FROM
+                    " . $this->table_name_details . " dfc
+                    JOIN LotesProducto lp ON dfc.lote_id = lp.lote_id
+                    JOIN Productos p ON dfc.producto_id = p.producto_id 
+                    LEFT JOIN Marcas m ON p.marca_id = m.marca_id
+                    -- Podrías añadir más JOINs si necesitas nombre de subcategoría o presentación del producto aquí
+                WHERE
+                    dfc.factura_compra_id = :factura_compra_id
+                ORDER BY
+                    p.nombre_producto ASC"; // O por dfc.detalle_factura_id
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":factura_compra_id", $factura_compra_id);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devuelve todas las filas de detalles
+    }
 
 
 }

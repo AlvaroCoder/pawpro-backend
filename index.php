@@ -31,9 +31,14 @@
             if ($method === 'POST') {
                 $controller = new FacturaCompraController();
                 $controller->registrarNuevaFactura();
-            } else {
+            } elseif ($method === 'GET') {
+                $controller = new FacturaCompraController();
+                $controller->gestionarGetFacturasCompra(); 
+            }
+    
+            else {
                 http_response_code(405);
-                echo json_encode(["message"=> "Metodo no permitido para esta ruta"]);
+                echo json_encode(["message"=> "Metodo no permitido para /api/facturas-compra."]);
             }
             break;
         
@@ -46,7 +51,6 @@
                 $controller = new ProductoController();
                 $controller->listarProductos(); 
             } else {
-                // Aquí podrías añadir GET /api/productos/{id} (ver uno), etc.
                 http_response_code(405);
                 echo json_encode(["message"=> "Metodo no permitido para /api/productos en esta etapa. Solo POST para crear."]);
                 

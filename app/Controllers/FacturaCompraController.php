@@ -111,5 +111,59 @@ class FacturaCompraController {
             echo json_encode(['message' => 'Error al procesar los items de la factura: ' . $e->getMessage()]);
         }
     }
+    public function gestionarGetFacturasCompra() {
+        $database = new Database();
+        $conn = $database->getConnection();
+
+        if (!$conn) {
+            http_response_code(503);
+            echo json_encode(['message' => 'No se pudo conectar a la base de datos.']);
+            return;
+        }
+
+        $facturaCompraModel = new FacturaCompra($conn);
+
+        // Verificar si se ha pasado el parámetro 'id' en la URL
+        if (isset($_GET['id']) && !empty($_GET['id']) && is_numeric($_GET['id'])) {
+            $id_factura = intval($_GET['id']);
+
+            // --- Lógica para obtener una factura por ID ---
+            $encabezadoFactura = $facturaCompraModel->getHeaderById($id_factura);
+
+            if (!$encabezadoFactura) {
+                http_response_code(404);
+                echo json_encode(['message' => 'Factura de compra no encontrada con el ID: ' . htmlspecialchars($id_factura)]);
+                return;
+            }
+
+            $detallesFactura = $facturaCompraModel->getDetailsByInvoiceId($id_factura);
+
+            $respuestaCompleta = $encabezadoFactura;
+            $respuestaCompleta['items'] = $detallesFactura ? $detallesFactura : [];
+
+            http_response_code(200);
+            echo json_encode($respuestaCompleta);
+            // --- FIN Lógica para obtener una factura por ID ---
+
+        } else {
+            // --- Lógica para listar todas las facturas  ---
+            $stmt = $facturaCompraModel->getAllHeaders();
+            $num_rows = $stmt->rowCount();
+
+            if ($num_rows > 0) {
+                $facturas_arr = array();
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $facturas_arr[] = $row;
+                }
+                http_response_code(200);
+                echo json_encode($facturas_arr);
+            } else {
+                http_response_code(404);
+                echo json_encode(["message" => "No se encontraron facturas de compra."]);
+            }
+        
+        }
+    }
+    
 }
 ?>
