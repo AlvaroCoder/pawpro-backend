@@ -191,6 +191,53 @@ public function getAllHeaders() {
         return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devuelve todas las filas de detalles
     }
 
+    /**
+     * Actualiza el estado y/u observaciones de una factura de compra.
+     */
+    public function actualizarEstado($id, $nuevoEstado, $nuevasObservaciones = null) {
+        // Se construye la parte SET de la consulta dinámicamente.
+        $setParts = [];
+        $paramsToBind = [];
+
+        if ($nuevoEstado !== null) {
+            $setParts[] = "estado = :estado";
+            $paramsToBind[':estado'] = htmlspecialchars(strip_tags($nuevoEstado));
+        }
+
+        // Solo se actualizan observaciones si se proporciona un valor (incluso una cadena vacía).
+        // Si se quiere borrar observaciones, se debería pasar una cadena vacía, no null.
+        // O ajustar la lógica para que null signifique SET observaciones = NULL.
+        // Por simplicidad, si es null, no se incluye en el UPDATE de observaciones.
+        if ($nuevasObservaciones !== null) {
+            $setParts[] = "observaciones = :observaciones";
+            $paramsToBind[':observaciones'] = htmlspecialchars(strip_tags(trim($nuevasObservaciones)));
+        }
+        
+        // Se añade fecha_modificacion para que siempre se actualice.
+        $setParts[] = "fecha_modificacion = CURRENT_TIMESTAMP";
+
+
+        if (empty($setParts)) {
+            // No hay nada que actualizar.
+            return false;
+        }
+
+        $query = "UPDATE " . $this->table_name . " SET " . implode(', ', $setParts) . " WHERE factura_compra_id = :factura_compra_id";
+        
+        $stmt = $this->conn->prepare($query);
+        
+        // Se vinculan los parámetros dinámicamente.
+        foreach ($paramsToBind as $param => $value) {
+            $stmt->bindValue($param, $value);
+        }
+        $stmt->bindParam(":factura_compra_id", $id, PDO::PARAM_INT);
+
+        if ($stmt->execute()) {
+            return $stmt->rowCount() > 0; // Verdadero si se actualizó alguna fila.
+        }
+        return false; // La excepción PDO será capturada por el controlador.
+    }
+
 
 }
 ?>

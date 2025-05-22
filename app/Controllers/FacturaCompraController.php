@@ -111,7 +111,11 @@ class FacturaCompraController {
             echo json_encode(['message' => 'Error al procesar los items de la factura: ' . $e->getMessage()]);
         }
     }
-    public function gestionarGetFacturasCompra() {
+/**
+     * Lista todos los encabezados de las facturas de compra.
+     * Corresponde a GET /api/facturas-compra
+     */
+    public function listarFacturasCompra() {
         $database = new Database();
         $conn = $database->getConnection();
 
@@ -122,48 +126,182 @@ class FacturaCompraController {
         }
 
         $facturaCompraModel = new FacturaCompra($conn);
+        $stmt = $facturaCompraModel->getAllHeaders();
+        $num_rows = $stmt->rowCount();
 
-        // Verificar si se ha pasado el parámetro 'id' en la URL
-        if (isset($_GET['id']) && !empty($_GET['id']) && is_numeric($_GET['id'])) {
-            $id_factura = intval($_GET['id']);
-
-            // --- Lógica para obtener una factura por ID ---
-            $encabezadoFactura = $facturaCompraModel->getHeaderById($id_factura);
-
-            if (!$encabezadoFactura) {
-                http_response_code(404);
-                echo json_encode(['message' => 'Factura de compra no encontrada con el ID: ' . htmlspecialchars($id_factura)]);
-                return;
-            }
-
-            $detallesFactura = $facturaCompraModel->getDetailsByInvoiceId($id_factura);
-
-            $respuestaCompleta = $encabezadoFactura;
-            $respuestaCompleta['items'] = $detallesFactura ? $detallesFactura : [];
-
-            http_response_code(200);
-            echo json_encode($respuestaCompleta);
-            // --- FIN Lógica para obtener una factura por ID ---
-
+        if ($num_rows > 0) {
+            $facturas_arr = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            http_response_code(200); // OK
+            echo json_encode($facturas_arr);
         } else {
-            // --- Lógica para listar todas las facturas  ---
-            $stmt = $facturaCompraModel->getAllHeaders();
-            $num_rows = $stmt->rowCount();
-
-            if ($num_rows > 0) {
-                $facturas_arr = array();
-                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    $facturas_arr[] = $row;
-                }
-                http_response_code(200);
-                echo json_encode($facturas_arr);
-            } else {
-                http_response_code(404);
-                echo json_encode(["message" => "No se encontraron facturas de compra."]);
-            }
-        
+            http_response_code(404); // Not Found
+            echo json_encode(["message" => "No se encontraron facturas de compra."]);
         }
     }
-    
+
+    /**
+     * Obtiene una factura de compra específica con todos sus detalles por ID de ruta.
+     * Corresponde a GET /api/facturas-compra/{id}
+     * @param int $id El ID de la factura a obtener.
+     */
+    public function obtenerFacturaPorId($id) {
+        $factura_id_sanitizada = filter_var($id, FILTER_VALIDATE_INT);
+        if ($factura_id_sanitizada === false || $factura_id_sanitizada <= 0) {
+            http_response_code(400);
+            echo json_encode(['message' => 'ID de factura inválido.']);
+            return;
+        }
+
+        $database = new Database();
+        $conn = $database->getConnection();
+
+        if (!$conn) {
+            http_response_code(503);
+            echo json_encode(['message' => 'No se pudo conectar a la base de datos.']);
+            return;
+        }
+
+        $facturaCompraModel = new FacturaCompra($conn);
+        $encabezadoFactura = $facturaCompraModel->getHeaderById($factura_id_sanitizada);
+
+        if (!$encabezadoFactura) {
+            http_response_code(404);
+            echo json_encode(['message' => 'Factura de compra no encontrada con el ID: ' . $factura_id_sanitizada]);
+            return;
+        }
+
+        $detallesFactura = $facturaCompraModel->getDetailsByInvoiceId($factura_id_sanitizada);
+        $respuestaCompleta = $encabezadoFactura;
+        $respuestaCompleta['items'] = $detallesFactura ? $detallesFactura : [];
+
+        http_response_code(200); // OK
+        echo json_encode($respuestaCompleta);
+    }
+
+
+    /**
+     * Actualiza el estado y/u observaciones de una factura de compra.
+     * Corresponde a PUT /api/facturas-compra/{id} o PATCH /api/facturas-compra/{id}
+     * @param int $id El ID de la factura a actualizar.
+     */
+    public function actualizarEstadoFactura($id) {
+        $factura_id_sanitizada = filter_var($id, FILTER_VALIDATE_INT);
+        if ($factura_id_sanitizada === false || $factura_id_sanitizada <= 0) {
+            http_response_code(400);
+            echo json_encode(['message' => 'ID de factura inválido para actualizar.']);
+            return;
+        }
+
+        $inputData = json_decode(file_get_contents("php://input"));
+
+        // Se espera 'estado' y opcionalmente 'observaciones' en el cuerpo JSON.
+        if (is_null($inputData) || !isset($inputData->estado) || empty(trim($inputData->estado))) {
+            http_response_code(400);
+            echo json_encode(['message' => 'Datos incompletos. Se requiere al menos el campo "estado".']);
+            return;
+        }
+
+        // Validación del valor de estado (ejemplo básico)
+        $estadosPermitidos = ['registrada', 'pagada', 'anulada'];
+        if (!in_array($inputData->estado, $estadosPermitidos)) {
+            http_response_code(400);
+            echo json_encode(['message' => 'Valor de "estado" inválido. Permitidos: ' . implode(', ', $estadosPermitidos)]);
+            return;
+        }
+
+        $database = new Database();
+        $conn = $database->getConnection();
+        if (!$conn) { http_response_code(503); echo json_encode(['message' => 'No se pudo conectar a la base de datos.']); return; }
+
+        $facturaCompraModel = new FacturaCompra($conn);
+
+        // Se verifica si la factura existe antes de intentar actualizar.
+        if (!$facturaCompraModel->getHeaderById($factura_id_sanitizada)) {
+             http_response_code(404);
+             echo json_encode(['message' => 'Factura de compra con ID ' . $factura_id_sanitizada . ' no encontrada.']);
+             return;
+        }
+        
+        $nuevasObservaciones = isset($inputData->observaciones) ? trim($inputData->observaciones) : null;
+
+        try {
+            if ($facturaCompraModel->actualizarEstado($factura_id_sanitizada, trim($inputData->estado), $nuevasObservaciones)) {
+                http_response_code(200); // OK
+                echo json_encode(['message' => 'Estado de la factura de compra actualizado exitosamente.']);
+            } else {
+                // Esto podría ser si el estado ya era el mismo y no se afectaron filas.
+                http_response_code(304); // Not Modified
+                echo json_encode(['message' => 'No se actualizó el estado de la factura (posiblemente ya tenía el estado enviado o el ID no existe).']);
+            }
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode(['message' => 'Error en la base de datos al actualizar estado de la factura.', 'error_detail' => $e->getMessage()]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['message' => 'Error general al actualizar estado de la factura.', 'error_detail' => $e->getMessage()]);
+        }
+    }
+
+
+    /**
+     * Anula una factura de compra (soft delete).
+     * Corresponde a DELETE /api/facturas-compra/{id}
+     * @param int $id El ID de la factura a anular.
+     */
+    public function anularFacturaCompra($id) {
+        $factura_id_sanitizada = filter_var($id, FILTER_VALIDATE_INT);
+        if ($factura_id_sanitizada === false || $factura_id_sanitizada <= 0) {
+            http_response_code(400);
+            echo json_encode(['message' => 'ID de factura inválido para anular.']);
+            return;
+        }
+
+        // Opcional: Permitir enviar observaciones para la anulación en el cuerpo JSON.
+        $inputData = json_decode(file_get_contents("php://input"));
+        $observacionesAnulacion = "Factura anulada por el usuario."; // Mensaje por defecto.
+        if (!is_null($inputData) && isset($inputData->observaciones_anulacion) && !empty(trim($inputData->observaciones_anulacion))) {
+            $observacionesAnulacion = trim($inputData->observaciones_anulacion);
+        }
+
+
+        $database = new Database();
+        $conn = $database->getConnection();
+        if (!$conn) { http_response_code(503); echo json_encode(['message' => 'No se pudo conectar a la base de datos.']); return; }
+
+        $facturaCompraModel = new FacturaCompra($conn);
+
+        // Se verifica si la factura existe y no está ya anulada.
+        $facturaExistente = $facturaCompraModel->getHeaderById($factura_id_sanitizada);
+        if (!$facturaExistente) {
+             http_response_code(404);
+             echo json_encode(['message' => 'Factura de compra con ID ' . $factura_id_sanitizada . ' no encontrada.']);
+             return;
+        }
+        if ($facturaExistente['estado'] === 'anulada') {
+            http_response_code(409); // Conflict
+            echo json_encode(['message' => 'La factura de compra con ID ' . $factura_id_sanitizada . ' ya se encuentra anulada.']);
+            return;
+        }
+
+        // NOTA IMPORTANTE: Anular una factura de compra podría implicar la reversión de movimientos de stock
+        // de los lotes asociados. Esa lógica es compleja y no se incluye aquí, solo se cambia el estado.
+
+        try {
+            if ($facturaCompraModel->actualizarEstado($factura_id_sanitizada, 'anulada', $observacionesAnulacion)) {
+                http_response_code(200); // OK
+                echo json_encode(['message' => 'Factura de compra anulada exitosamente.']);
+            } else {
+                http_response_code(500);
+                echo json_encode(['message' => 'No se pudo anular la factura de compra.']);
+            }
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode(['message' => 'Error en la base de datos al anular la factura.', 'error_detail' => $e->getMessage()]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['message' => 'Error general al anular la factura.', 'error_detail' => $e->getMessage()]);
+        }
+    }
 }
+
 ?>
