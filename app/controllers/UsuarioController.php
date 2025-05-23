@@ -17,15 +17,16 @@ class UsuarioController
         $password = $_POST['password'];
         $correo = $_POST['correo'];
         
+        echo $nombre_usuario." ".$password. "".$correo;
         // Validación simple
-        if (empty($nombre_usuario) || empty($contrasena) || empty($correo)) {
+        if (empty($nombre_usuario) ||  empty($password) || empty($correo)) {
             http_response_code(400); // Petición incorrecta
-            echo json_encode(['success' => false, 'message' => 'Todos los campos son obligatorios', "body" => "Nombre usuario : ".$nombre_usuario]);
+            echo json_encode(['success' => false, 'message' => 'Todos los campos son obligatorios']);
             return;
         }
 
         // Hash de contraseña
-        $contrasena_hash = password_hash($contrasena, PASSWORD_BCRYPT);
+        $contrasena_hash = password_hash($password, PASSWORD_BCRYPT);
 
         // Crear usuario
         $usuario = new Usuario();

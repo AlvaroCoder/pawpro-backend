@@ -27,16 +27,12 @@ require_once 'app/controllers/UsuarioController.php';
 $request = $_SERVER['REQUEST_URI'];
 $method = $_SERVER['REQUEST_METHOD'];
 
+
 // --- ENRUTADOR ---
 switch ($request) {
     case '/api/register':
-        if ($method === 'POST') {
-            $controller = new UsuarioController();
-            $controller->registrar();
-        } else {
-            http_response_code(405);
-            echo json_encode(["message" => "Método no permitido"]);
-        }
+        $controller = new UsuarioController();
+        $controller->registrar();
         break;
 
     case '/api/login':
@@ -78,7 +74,7 @@ switch ($request) {
             echo json_encode(["message" => "Método no permitido"]);
         }
         break;
-
+    
     case '/api/marcas':
         if ($method === 'GET') {
             $controller = new Controlador();
