@@ -8,6 +8,7 @@
             $db = $database->getConnection();
             $sql = "SELECT * FROM Categoria;";
             $stament = $db->query($sql);
+            return $stament->fetchAll(PDO::FETCH_ASSOC);
         }
     }
 ?>
