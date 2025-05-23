@@ -2,9 +2,9 @@
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json");
 
-// Parámetros de conexión
+// Parámetros de conexión, estas son los mios xd
 $host = "localhost";
-$usuario = "root"; // Cambiar si tienes otro usuario
+$usuario = "root"; 
 $contrasena = "123456";  
 $base_datos = "pawpro_database";
 
