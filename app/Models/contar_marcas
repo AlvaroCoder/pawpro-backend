@@ -2,12 +2,13 @@
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json");
 
+// Parámetros de conexión
 $host = "localhost";
-$usuario = "root"; 
+$usuario = "root"; // Cambiar si tienes otro usuario
 $contrasena = "123456";  
 $base_datos = "pawpro_database";
 
-// Crear conexión
+// Conectar con la base de datos
 $conn = new mysqli($host, $usuario, $contrasena, $base_datos);
 
 // Verificar conexión
@@ -17,15 +18,15 @@ if ($conn->connect_error) {
     exit();
 }
 
-// Consulta: contar productos
-$sql = "SELECT COUNT(*) AS total FROM productos";
+// Consulta SQL
+$sql = "SELECT COUNT(*) AS total FROM marcas";
 $resultado = $conn->query($sql);
 
-// Resultado
+// Devolver resultado
 if ($resultado && $fila = $resultado->fetch_assoc()) {
-    echo json_encode(["total_productos" => $fila["total"]]);
+    echo json_encode(["total_marcas" => $fila["total"]]);
 } else {
-    echo json_encode(["error" => "Error en la consulta"]);
+    echo json_encode(["error" => "Error al contar marcas"]);
 }
 
 $conn->close();
