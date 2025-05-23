@@ -62,3 +62,9 @@ INSERT INTO Subcategoria(id_categoria, nombre_subcategoria) VALUES (4, "Alimento
 -- Insertar las marcas
 -- -----------------------------------------------------
 
+
+--- ---------
+--- Insertar los roles
+--- -----
+INSERT INTO Roles(nombre_rol, descripcion) VALUES ('Administrador', 'El rol general que tiene todos los privilegios');
+INSERT INTO Roles(nombre_rol, descripcion) VALUES ('Encargado de ventas', 'El rol para los trabajadores de ventas');
