@@ -1,5 +1,4 @@
 <?php
-    // Utilizamos un modelo para tipo POO para nuestra tabla de Categoria
     require_once 'config/database.php';
 
     class Categoria {
@@ -9,7 +8,6 @@
             $db = $database->getConnection();
             $sql = "SELECT * FROM Categoria;";
             $stament = $db->query($sql);
-            return $stament->fetchAll(PDO::FETCH_ASSOC);
         }
     }
 ?>
