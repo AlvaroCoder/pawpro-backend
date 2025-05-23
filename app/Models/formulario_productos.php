@@ -52,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
     $stmt = $conexion->prepare("INSERT INTO productos (id_producto, nombre, descripcion, precio_compra, precio_venta, stock, categoria, subcategoria, marca, presentacion, fecha_vencimiento, fabricante, peso_volumen, unidad_medida, ubicacion_almacen, notas)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-    $stmt->bind_param("sssddisssssssss",
+    $stmt->bind_param("sssddissssssssss",
         $id_producto,
         $nombre,
         $descripcion,
