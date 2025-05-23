@@ -1,0 +1,35 @@
+DROP DATABASE IF EXISTS registro_productos;
+
+CREATE DATABASE registro_productos CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+
+USE registro_productos;
+
+CREATE TABLE productos (
+    -- ID único del producto, autoincrementable y clave primaria
+    id_producto VARCHAR(6) PRIMARY KEY, 
+    -- VARCHAR para cadenas de texto de longitud variable
+    nombre VARCHAR(255) NOT NULL,
+    descripcion TEXT,
+    precio_compra DECIMAL(10, 2) NOT NULL,
+    precio_venta DECIMAL(10, 2) NOT NULL,
+    stock INT NOT NULL, 
+    categoria VARCHAR(100),
+    subcategoria VARCHAR(100),
+    marca VARCHAR(100),
+    presentacion VARCHAR(100),
+    fecha_vencimiento DATE,
+    fabricante VARCHAR(100),
+    peso_volumen DECIMAL(10, 2),
+    unidad_medida VARCHAR(50),
+    ubicacion_almacen VARCHAR(255),
+    notas TEXT,
+    
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+
+CREATE INDEX idx_nombre ON productos (nombre);
+CREATE INDEX idx_categoria ON productos (categoria);
+CREATE INDEX idx_subcategoria ON productos (subcategoria);
