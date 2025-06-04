@@ -3,7 +3,6 @@ require_once 'config/database.php';
 
 class AuthController {
     public function login() {
-        // Obtener datos del body (puede venir por POST o JSON)
         $data = json_decode(file_get_contents("php://input"), true);
         $username = $data['username'] ?? null;
         $password = $data['password'] ?? null;
@@ -15,7 +14,7 @@ class AuthController {
         }
 
         try {
-            $pdo = getConnection(); // Desde database.php
+            $pdo = getConnection(); 
             $stmt = $pdo->prepare("SELECT * FROM Usuarios WHERE nombre_usuario = :username");
             $stmt->execute(['username' => $username]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -26,7 +25,6 @@ class AuthController {
                 return;
             }
 
-            // Aquí puedes generar un token de sesión, JWT o iniciar sesión PHP
             echo json_encode([
                 'message' => 'Inicio de sesión exitoso.',
                 'user' => [
