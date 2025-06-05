@@ -8,9 +8,9 @@
      */
     class Database{
         private $host = "localhost";
-        private $db_name = "pawpro_database";
+        private $db_name = "registro_productos";
         private $username = "root";
-        private $password = "pOzrpi@12%1eb?";
+        private $password = "123456";
         public $conn;
 
         public function getConnection(){
