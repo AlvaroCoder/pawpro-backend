@@ -41,15 +41,21 @@ class CategoriaController{
             ]);
         }
     }
-    
+
     public function actualizarCategoria(){
         $categoriaModelo = new Categoria();
         
         $data = json_decode(file_get_contents('php://input'), true);
 
         $idCategoria = $data['idCategoria'];
+        $nombreCategoria = $data['nombreCategoria'];
+        $descripcion = $data['descripcion'];
         try {
-            $response = $categoriaModelo->actualizarCategoria();
+            $response = $categoriaModelo->actualizarCategoria(
+                $idCategoria,
+                $nombreCategoria,
+                $descripcion
+            );
             if (!$response) {
                 http_response_code(401);
                 echo json_encode([
@@ -73,7 +79,32 @@ class CategoriaController{
 
     }
     public function eliminarCategoria(){
+        $categoriaModelo = new Categoria();
+        $data = json_decode(file_get_contents('php://input'), true);
 
+        $idCategoria = $data['idCategoria'];
+
+        try {
+            $response = $categoriaModelo->deleteCategoriaPorId($idCategoria);
+            if (!$response) {
+                http_response_code(401);
+                echo json_encode([
+                 'success'=>false,
+                 'message'=>'Error al eliminar la categoria'
+                 ]);
+                 return;
+            }
+            echo json_encode([
+                'success'=>true,
+                'message'=>'Categoria eliminada'
+            ]);
+        } catch (Eception $error) {
+            http_response_code(401);
+            echo json_encode([
+                'success'=>false,
+                'message'=>$error->getMessage()
+            ]);
+        }
     }
 }
 

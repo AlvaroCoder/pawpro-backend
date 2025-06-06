@@ -23,6 +23,7 @@ require_once 'app/controllers/CategoriasController.php';
 require_once 'app/controllers/UsuarioController.php';
 require_once 'app/controllers/ProductoController.php';
 require_once 'app/controllers/FacturaCompraController.php';
+require_once 'app/controllers/SubcategoriasController.php';
 
 // --- RUTA Y MÉTODO ---
 $request = $_SERVER['REQUEST_URI'];
@@ -73,12 +74,30 @@ switch ($baseRouteForSwitch) {
         else if ($method === 'PUT') {
             $controller->actualizarCategoria();
         }
+        else if ($method === 'DELETE') {
+            $controller->eliminarCategoria();
+        }
         else {
             http_response_code(405);
             echo json_encode(["message" => "Método no permitido"]);
         }
         break;
-
+    case '/subcategorias':
+        $controller = new SubcategoriaController();
+        if ($method === 'GET') {
+            $controller->listarSubcategorias();
+        } 
+        else if ($method === 'POST') {
+            $controller->crearSubcategoria();
+        }
+        else if ($method === 'PUT') {
+            $controller->actualizarSubcategoria();
+        }
+        else{
+            http_response_code(405);
+            echo json_encode(["message" => "Método no permitido"]);
+        }
+        break;
     case '/api/subcategorias':
         if ($method === 'GET') {
             $controller = new Controlador();

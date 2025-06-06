@@ -14,16 +14,6 @@ require_once 'config/database.php';
             $this->conn = $database->getConnection();
         }
         
-        /**
-         * Obtener todas las categorías (versión estática)
-         */
-        public static function getAll() {
-            $database = new Database();
-            $db = $database->getConnection();
-            $stmt = $db->query("SELECT * FROM Categoria");
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        }
-
 
         public function obtenerCategorias() {
             $stmt = $this->conn->query("SELECT * FROM Categoria");
@@ -67,20 +57,38 @@ require_once 'config/database.php';
             }
 
             $sql = "UPDATE Categoria SET nombre_categoria=:nombre_categoria, descripcion=:descripcion, fecha_modificacion=CURRENT_TIMESTAMP WHERE id_categoria=:id_categoria";
-            $stmt = $this->conn->prepare($sq);
+            $stmt = $this->conn->prepare($sql);
 
             $nombreCategoria = htmlspecialchars(strip_tags($nombreCategoria));
             $descripcion = htmlspecialchars(strip_tags($descripcion));
             $idCategoria = (int)$idCategoria;
 
+
             $stmt->bindParam(':nombre_categoria',$nombreCategoria);
             $stmt->bindParam(':descripcion',$descripcion);
-            $stmt->bindParam(':id_categoria', $nombre);
+            $stmt->bindParam(':id_categoria', $idCategoria);
 
             if ($stmt->execute()) {
                 return $this->obtenerPorId($idCategoria);
             }
             return false;
         }
+
+        public function deleteCategoriaPorId($idCategoria){
+            if (!is_numeric($idCategoria)) {
+                throw new InvalidArgumentException("ID de categoría inválido");
+            }
+            $sql = "DELETE FROM Categoria WHERE id_categoria = :id_categoria";
+            $stmt = $this->conn->prepare($sql);
+
+            $stmt->bindParam(':id_categoria', $idCategoria);
+
+            if ($stmt->execute()) {
+                return true;
+            }
+            return false;
+        }
+
     }
+
 ?>
