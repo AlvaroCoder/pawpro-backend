@@ -97,7 +97,23 @@ class Usuario {
         $stmt->execute();
         return $stmt->rowCount() > 0;
     }
+    public function obtenerPorCoreo($cooreo){
+        $sql = "SELECT * FROM Usuarios WHERE correo_electronico=".$correo;
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':correo', $correo);
+        $stmt->execute();
 
+        if ($stmt->rowCount()>0 ) {
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $this->id = $row['id'];
+            $this->nombre_usuario = $row['nombre_usuario'];
+            $this->correo_electronico = $row['correo_electronico'];
+            $this->contraseña_hash = $row['contraseña_hash'];
+            $this->estado = $row['estado'];
+            $this->rol_id = $row['rol_id'];
+            return $row;
+        }
+    }
     /**
      * Autenticar usuario (para uso en AuthController)
      */
@@ -128,7 +144,7 @@ class Usuario {
      */
     public function actualizar($id, $datos) {
         // Implementar según necesidades
-        
+
     }
 
     /**
@@ -146,6 +162,12 @@ class Usuario {
         $stmt->bindParam(':id', $id);
 
         return $stmt->execute();
+    }
+
+    public function listarUsuarios(){
+        $sql = "SELECT * FROM Usuarios ";
+        $stmt = $this->conn->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 ?>

@@ -19,11 +19,9 @@ header("Content-Type: application/json");
 // --- DEPENDENCIAS ---
 require_once 'config/database.php';
 require_once 'app/controllers/ControladorGet.php';
-require_once 'app/controllers/ControladorLogin.php';
 require_once 'app/controllers/UsuarioController.php';
 require_once 'app/controllers/ProductoController.php';
 require_once 'app/controllers/FacturaCompraController.php';
-require_once 'app/controllers/AuthController.php';
 
 // --- RUTA Y MÉTODO ---
 $request = $_SERVER['REQUEST_URI'];
@@ -49,6 +47,10 @@ elseif (preg_match('/^\/api\/facturas-compra\/(\d+)$/', $pathWithoutQuery, $matc
 
 // --- ENRUTADOR ---
 switch ($baseRouteForSwitch) {
+    case '/users':
+        $controller = new UsuarioController();
+        $controller->listarUsuarios();
+        break;
     case '/api/register':
         if ($method === 'POST') {
             $controller = new UsuarioController();
@@ -60,18 +62,13 @@ switch ($baseRouteForSwitch) {
         break;
 
     case '/api/login':
-        if ($method === 'POST') {
-            $controller = new AuthController();
-            $controller->login();
-        } else {
-            http_response_code(405);
-            echo json_encode(["message" => "Método no permitido"]);
-        }
+        $controller = new UsuarioController();
+        $controller->iniciarSesion();
         break;
 
     case '/api/categorias':
         if ($method === 'GET') {
-            $controller = new ControladorGet();
+            $controller = new Controlador();
             $controller->obtenerCategorias();
         } else {
             http_response_code(405);
@@ -81,7 +78,7 @@ switch ($baseRouteForSwitch) {
 
     case '/api/subcategorias':
         if ($method === 'GET') {
-            $controller = new ControladorGet();
+            $controller = new Controlador();
             $controller->obtenerSubcategorias(); 
         } else {
             http_response_code(405);
@@ -91,7 +88,7 @@ switch ($baseRouteForSwitch) {
 
     case '/api/presentaciones':
         if ($method === 'GET') {
-            $controller = new ControladorGet();
+            $controller = new Controlador();
             $controller->obtenerPresentaciones();
         } else {
             http_response_code(405);
@@ -101,7 +98,7 @@ switch ($baseRouteForSwitch) {
     
     case '/api/marcas':
         if ($method === 'GET') {
-            $controller = new ControladorGet();
+            $controller = new Controlador();
             $controller->obtenerMarcas();
         } else {
             http_response_code(405);
