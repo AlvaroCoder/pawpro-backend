@@ -19,6 +19,7 @@ header("Content-Type: application/json");
 // --- DEPENDENCIAS ---
 require_once 'config/database.php';
 require_once 'app/controllers/ControladorGet.php';
+require_once 'app/controllers/CategoriasController.php';
 require_once 'app/controllers/UsuarioController.php';
 require_once 'app/controllers/ProductoController.php';
 require_once 'app/controllers/FacturaCompraController.php';
@@ -51,26 +52,28 @@ switch ($baseRouteForSwitch) {
         $controller = new UsuarioController();
         $controller->listarUsuarios();
         break;
-    case '/api/register':
-        if ($method === 'POST') {
-            $controller = new UsuarioController();
-            $controller->registrar();
-        } else {
-            http_response_code(405);
-            echo json_encode(["message" => "Método no permitido"]);
-        }
+    case '/users/signup':
+        $controller = new UsuarioController();
+        $controller->registrar();
         break;
 
-    case '/api/login':
+    case '/users/login':
         $controller = new UsuarioController();
         $controller->iniciarSesion();
         break;
 
-    case '/api/categorias':
-        if ($method === 'GET') {
-            $controller = new Controlador();
-            $controller->obtenerCategorias();
-        } else {
+    case '/categorias':
+        $controller = new CategoriaController();
+        if ($method === 'GET') { 
+            $controller->listarCategorias();
+        }
+        else if ($method === 'POST') {
+            $controller->crearCategoria();
+        }
+        else if ($method === 'PUT') {
+            $controller->actualizarCategoria();
+        }
+        else {
             http_response_code(405);
             echo json_encode(["message" => "Método no permitido"]);
         }
