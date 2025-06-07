@@ -29,7 +29,7 @@ $request = $_SERVER['REQUEST_URI'];
 $method = $_SERVER['REQUEST_METHOD'];
 
 // 1. Limpiar parámetros de consulta para obtener la ruta pura
-$pathWithoutQuery = strtok($requestUri, '?'); // Ej: /api/productos/4 o /api/productos
+$pathWithoutQuery = strtok($request, '?'); // Ej: /api/productos/4 o /api/productos
 
 // 2. Extraer ID y normalizar la ruta para el switch
 $resourceId = null;
