@@ -24,6 +24,8 @@ require_once 'app/controllers/UsuarioController.php';
 require_once 'app/controllers/ProductoController.php';
 require_once 'app/controllers/FacturaCompraController.php';
 require_once 'app/controllers/SubcategoriasController.php';
+require_once 'app/controllers/KPIController.php';
+
 
 // --- RUTA Y MÉTODO ---
 $request = $_SERVER['REQUEST_URI'];
@@ -163,6 +165,17 @@ switch ($baseRouteForSwitch) {
             echo json_encode(["message" => "Método no permitido o combinación de ruta/ID inválida para /api/facturas-compra."]);
         }
         break;
+    case '/api/kpi/resumen-stock':
+        if ($method === 'GET') {
+            $controller = new KPIController();
+            $controller->resumenStock();
+        } else {
+            http_response_code(405);
+            echo json_encode(["message" => "Método no permitido para /api/kpi/resumen-stock"]);
+        }
+        break;
+
+
 
     default:
         http_response_code(404);
