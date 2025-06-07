@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../config/database.php'; // Para la conexión a la B
 require_once __DIR__ . '/../models/FacturaCompra.php'; // Modelo FacturaCompra
 require_once __DIR__ . '/../models/Producto.php'; 
 require_once __DIR__ . '/../models/LoteProducto.php'; 
+
 class FacturaCompraController {
     public function registrarNuevaFactura() {
         // 1. Obtener los datos del cuerpo de la solicitud (payload JSON)
