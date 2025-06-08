@@ -13,4 +13,30 @@ class KPI {
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+    public static function totalProductos($conn) {
+        $stmt = $conn->prepare("SELECT COUNT(*) as total FROM productos");
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public static function totalMarcas($conn) {
+        $stmt = $conn->prepare("SELECT COUNT(DISTINCT marca) as total FROM productos");
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public static function tresConMenorStock($conn) {
+        $stmt = $conn->prepare("SELECT nombre, stock FROM productos ORDER BY stock ASC LIMIT 3");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public static function productosPorVencer($conn) {
+        $stmt = $conn->prepare("SELECT nombre, fecha_vencimiento FROM productos WHERE fecha_vencimiento BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 1 MONTH)");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    
+
 }
