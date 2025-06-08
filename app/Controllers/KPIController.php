@@ -1,21 +1,82 @@
 <?php
 require_once __DIR__ . '/../Models/kpi.php';
-require_once __DIR__ . '/../../config/database.php'; 
+require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
+use Dompdf\Dompdf;
+class KPIController
+{
+    private static function getConexion()
+    {
+        return (new Database())->getConnection();
+    }
 
-class KPIController {
-    public static function resumenStock() {
-        // ✅ Crear instancia de Database (porque no usas métodos estáticos)
-        $database = new Database();
-        $conexion = $database->getConnection();
-
-        // ✅ Usar la conexión en los métodos del modelo KPI
-        $mayor = KPI::productoConMasStock($conexion);
-        $menor = KPI::productoConMenosStock($conexion);
-
-        // ✅ Devolver JSON limpio
+    public static function productoConMasStock()
+    {
+        $conexion = self::getConexion();
         echo json_encode([
-            'producto_con_mas_stock' => $mayor,
-            'producto_con_menos_stock' => $menor
+            'producto_con_mas_stock' => KPI::productoConMasStock($conexion)
         ]);
     }
+
+    public static function productosMenorStock()
+    {
+        $conexion = self::getConexion();
+        echo json_encode([
+            'productos_con_menos_stock' => KPI::tresConMenorStock($conexion)
+        ]);
+    }
+
+    public static function totalProductos()
+    {
+        $conexion = self::getConexion();
+        echo json_encode([
+            'total_productos' => KPI::totalProductos($conexion)
+        ]);
+    }
+
+    public static function totalMarcas()
+    {
+        $conexion = self::getConexion();
+        echo json_encode([
+            'total_marcas' => KPI::totalMarcas($conexion)
+        ]);
+    }
+
+    public static function productosPorVencer()
+    {
+        $conexion = self::getConexion();
+        echo json_encode([
+            'productos_por_vencer' => KPI::productosPorVencer($conexion)
+        ]);
+    }
+    public static function generarReportePDF()
+    {
+        $conexion = self::getConexion();
+
+        // Recolectar los datos del modelo
+        $productoMasStock = KPI::productoConMasStock($conexion);
+        $top3MenorStock = KPI::tresConMenorStock($conexion);
+        $productosPorVencer = KPI::productosPorVencer($conexion);
+        $totalProductos = KPI::totalProductos($conexion);
+        $totalMarcas = KPI::totalMarcas($conexion);
+
+        // Preparar HTML para el PDF (usa vista PHP externa)
+        ob_start();
+        include __DIR__ . '/../View/resumen_inventario.php';
+        $html = ob_get_clean();
+
+        // Crear PDF con DomPDF
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="reporte_inventario.pdf"');
+        echo $dompdf->output();
+    }
+
+
+
+    
 }
