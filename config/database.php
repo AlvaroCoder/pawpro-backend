@@ -10,9 +10,8 @@
         private $host = "localhost";
         private $db_name = "pawpro_database";
         private $username = "root";
-        private $password = "root123456";
+        private $password = "pOzrpi@12%1eb?";
         public $conn;
-
         public function getConnection(){
             $this->conn = null;
 
