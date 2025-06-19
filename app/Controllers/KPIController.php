@@ -18,7 +18,7 @@ class KPIController
         ]);
     }
 
-    public static function productosMenorStock()
+    public static function tresConMenorStock()
     {
         $conexion = self::getConexion();
         echo json_encode([
