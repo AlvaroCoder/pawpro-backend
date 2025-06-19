@@ -177,7 +177,7 @@ switch ($baseRouteForSwitch) {
 
     case '/api/kpi/productos-menos-stock':
         if ($method === 'GET') {
-            KPIController::productosMenorStock();
+            KPIController::tresConMenorStock();
         } else {
             http_response_code(405);
             echo json_encode(["message" => "Método no permitido para /api/kpi/resumen-stock"]);
