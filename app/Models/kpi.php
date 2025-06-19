@@ -54,11 +54,12 @@ class KPI {
     }
 
     public static function totalMarcas($conn) {
-        $stmt = $conn->prepare("SELECT COUNT(DISTINCT marca) as total FROM productos");
+        $sql = "SELECT COUNT(*) AS total_marcas FROM marcas";
+        $stmt = $conn->prepare($sql);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        return $stmt->fetch(PDO::FETCH_ASSOC); // ['total_marcas' => N]
     }
-    
+
 
     public static function productosPorVencer($conn) {
         $stmt = $conn->prepare("SELECT nombre, fecha_vencimiento

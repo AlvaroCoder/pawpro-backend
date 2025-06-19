@@ -166,6 +166,9 @@ switch ($baseRouteForSwitch) {
         }
         break;
     //AGREGADO POR BIANQUISS
+
+    //caso para los productos con mas stocks
+    
     case '/api/kpi/producto-mas-stock':
         if ($method === 'GET') {
             KPIController::productoConMasStock();
@@ -174,6 +177,7 @@ switch ($baseRouteForSwitch) {
             echo json_encode(["message" => "Método no permitido para /api/kpi/resumen-stock"]);
         }
         break;
+//caso para los productos con mensos stock
 
     case '/api/kpi/productos-menos-stock':
         if ($method === 'GET') {

@@ -9,7 +9,7 @@ class KPIController
     {
         return (new Database())->getConnection();
     }
-
+// productos con mas stocks
     public static function productoConMasStock()
     {
         $conexion = self::getConexion();
@@ -17,7 +17,7 @@ class KPIController
             'producto_con_mas_stock' => KPI::productoConMasStock($conexion)
         ]);
     }
-
+//productos con menos stock
     public static function tresConMenorStock()
     {
         $conexion = self::getConexion();
