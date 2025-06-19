@@ -10,11 +10,11 @@ class KPIController
         return (new Database())->getConnection();
     }
 // productos con mas stocks
-    public static function productoConMasStock()
+    public static function tresConMayorStock()
     {
         $conexion = self::getConexion();
         echo json_encode([
-            'producto_con_mas_stock' => KPI::productoConMasStock($conexion)
+            'producto_con_mas_stock' => KPI::tresConMayorStock($conexion)
         ]);
     }
 //productos con menos stock
@@ -54,7 +54,7 @@ class KPIController
         $conexion = self::getConexion();
 
         // Recolectar los datos del modelo
-        $productoMasStock = KPI::productoConMasStock($conexion);
+        $top3MayorStock = KPI::tresConMayorStock($conexion);
         $top3MenorStock = KPI::tresConMenorStock($conexion);
         $productosPorVencer = KPI::productosPorVencer($conexion);
         $totalProductos = KPI::totalProductos($conexion);

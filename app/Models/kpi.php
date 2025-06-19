@@ -62,11 +62,27 @@ class KPI {
 
 
     public static function productosPorVencer($conn) {
-        $stmt = $conn->prepare("SELECT nombre, fecha_vencimiento
-        FROM productos WHERE fecha_vencimiento BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 1 MONTH)");
+        $sql = "
+            SELECT 
+                p.nombre_producto,
+                l.codigo_lote,
+                l.fecha_vencimiento,
+                l.cantidad_actual
+            FROM 
+                productos p
+            JOIN 
+                lotesproducto l ON p.producto_id = l.producto_id
+            WHERE 
+                l.fecha_vencimiento BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 700 DAY)
+            ORDER BY 
+                l.fecha_vencimiento ASC
+        ";
+
+        $stmt = $conn->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
     
     
 
