@@ -23,23 +23,12 @@ class Usuario {
     /**
      * Registrar un nuevo usuario
      */
-    public function registrar($nombre_usuario, $contrasena, $correo, $rol_id = 4) {
-        // Validar datos básicos
-        if (empty($nombre_usuario) || empty($contrasena) || empty($correo)) {
-            throw new Exception("Todos los campos son requeridos");
-        }
+    public function registrar($nombre_usuario, $contrasena_hash, $correo, $rol_id = 7) {
 
-        // Verificar si el correo ya existe
-        if ($this->correoExiste($correo)) {
-            throw new Exception("El correo electrónico ya está registrado");
-        }
-
-        // Hash de la contraseña
-        $contrasena_hash = password_hash($contrasena, PASSWORD_BCRYPT);
-
-        $sql = "INSERT INTO " . $this->table_name . " 
-                (nombre_usuario, contraseña_hash, correo_electronico, estado, rol_id, creado_en)
-                VALUES (:nombre_usuario, :contrasena_hash, :correo, 'activo', :rol_id, NOW())";
+        
+        $sql = "INSERT INTO usuarios
+                (nombre_usuario, nombre_acceso, contraseña_hash, correo_electronico, estado, rol_id, fecha_creacion, fecha_modificacion)
+                VALUES (:nombre_usuario, :nombre_acceso, :contrasena_hash, :correo, 'activo', :rol_id, NOW(), NOW())";
         
         $stmt = $this->conn->prepare($sql);
         
@@ -48,9 +37,10 @@ class Usuario {
         $correo = htmlspecialchars(strip_tags($correo));
 
         $stmt->bindParam(':nombre_usuario', $nombre_usuario);
+        $stmt->bindParam(':nombre_acceso',$nombre_usuario);
         $stmt->bindParam(':contrasena_hash', $contrasena_hash);
         $stmt->bindParam(':correo', $correo);
-        $stmt->bindParam(':rol_id', $rol_id);
+        $stmt->bindParam(':rol_id',$rol_id);
 
         if ($stmt->execute()) {
             // Retornar el ID del nuevo usuario
@@ -65,9 +55,9 @@ class Usuario {
      * Obtener usuario por ID
      */
     public function obtenerPorId($id) {
-        $sql = "SELECT id, nombre_usuario, correo_electronico, estado, rol_id, creado_en 
-                FROM " . $this->table_name . " 
-                WHERE id = :id LIMIT 1";
+        $sql = "SELECT usuario_id, nombre_usuario, correo_electronico, estado, rol_id, fecha_creacion 
+                FROM usuarios 
+                WHERE usuario_id = :id LIMIT 1";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':id', $id);
@@ -75,12 +65,12 @@ class Usuario {
 
         if ($stmt->rowCount() > 0) {
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            $this->id = $row['id'];
+            $this->id = $row['usuario_id'];
             $this->nombre_usuario = $row['nombre_usuario'];
             $this->correo_electronico = $row['correo_electronico'];
             $this->estado = $row['estado'];
             $this->rol_id = $row['rol_id'];
-            $this->creado_en = $row['creado_en'];
+            $this->creado_en = $row['fecha_creacion'];
             return $row;
         }
 
@@ -91,13 +81,22 @@ class Usuario {
      * Verificar si un correo ya existe
      */
     public function correoExiste($correo) {
-        $sql = "SELECT id FROM " . $this->table_name . " WHERE correo_electronico = :correo LIMIT 1";
+        $sql = "SELECT usuario_id FROM usuarios WHERE correo_electronico = :correo LIMIT 1";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':correo', $correo);
         $stmt->execute();
         return $stmt->rowCount() > 0;
     }
-    public function obtenerPorCoreo($cooreo){
+
+    public function usuarioExiste($usuario){
+        $sql = "SELECT usuario_id FROM usuarios WHERE nombre_usuario = :usuario LIMIT 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':usuario', $usuario);
+        $stmt->execute();
+        return $stmt->rowCount() > 0;
+    }
+    
+    public function obtenerPorCoreo($correo){
         $sql = "SELECT * FROM Usuarios WHERE correo_electronico=".$correo;
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':correo', $correo);

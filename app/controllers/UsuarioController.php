@@ -102,13 +102,12 @@ class UsuarioController
             return;
         }
 
+        $data = json_decode(file_get_contents('php://input'), true);
+        $nombre_usuario = trim($data['username']);
+        $password = trim($data['password']);
+        $email = $data['email'];
        
-        $nombre_usuario = $_POST['nombre_usuario'];
-        $password = $_POST['password'];
-        $correo = $_POST['correo'];
-    
-       
-        if (empty($nombre_usuario) ||  empty($password) || empty($correo)) {
+        if (empty($nombre_usuario) ||  empty($password) || empty($email)) {
             http_response_code(400); 
             echo json_encode([
                 'success' => false, 
@@ -116,12 +115,31 @@ class UsuarioController
             return;
         }
 
-      
-        $contrasena_hash = password_hash($password, PASSWORD_BCRYPT);
         $usuario = new Usuario();
-        $resultado = $usuario->registrar($nombre_usuario, $contrasena_hash, $correo);
+
+        if ($usuario->correoExiste($email)) {
+            http_response_code(401);
+            echo json_encode([
+                'success'=>false,
+                'message'=> 'El correo ya existe'
+            ]);
+            return;
+        }
+
+        if ($usuario->usuarioExiste($nombre_usuario)) {
+            http_response_code(401);
+            echo json_encode([
+                'success'=>false,
+                'message'=> 'El usuario ya existe'
+            ]);
+            return;
+        }
+
+        $password_hash = password_hash($data['password'], PASSWORD_DEFAULT);
+        $resultado = $usuario->registrar($nombre_usuario, $password_hash, $email);
 
         if ($resultado) {
+            
             echo json_encode(['success' => true, 'message' => 'Usuario registrado con éxito']);
         } else {
             http_response_code(500); 

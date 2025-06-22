@@ -24,8 +24,6 @@ require_once 'app/controllers/UsuarioController.php';
 require_once 'app/controllers/ProductoController.php';
 require_once 'app/controllers/FacturaCompraController.php';
 require_once 'app/controllers/SubcategoriasController.php';
-require_once 'app/controllers/KPIController.php';
-
 
 // --- RUTA Y MÉTODO ---
 $request = $_SERVER['REQUEST_URI'];
@@ -165,68 +163,6 @@ switch ($baseRouteForSwitch) {
             echo json_encode(["message" => "Método no permitido o combinación de ruta/ID inválida para /api/facturas-compra."]);
         }
         break;
-    //AGREGADO POR BIANQUISS
-
-    //caso para los productos con mas stocks
-
-    case '/api/kpi/producto-mas-stock':
-        if ($method === 'GET') {
-            KPIController::tresConMayorStock();
-        } else {
-            http_response_code(405);
-            echo json_encode(["message" => "Método no permitido para /api/kpi/resumen-stock"]);
-        }
-        break;
-//caso para los productos con mensos stock
-
-    case '/api/kpi/productos-menos-stock':
-        if ($method === 'GET') {
-            KPIController::tresConMenorStock();
-        } else {
-            http_response_code(405);
-            echo json_encode(["message" => "Método no permitido para /api/kpi/resumen-stock"]);
-        }
-        break;
-
-    case '/api/kpi/total-productos':
-        if ($method === 'GET') {
-            KPIController::totalProductos();
-        } else {
-            http_response_code(405);
-            echo json_encode(["message" => "Método no permitido para /api/kpi/resumen-stock"]);
-        }
-        break;
-
-    case '/api/kpi/total-marcas':
-        if ($method === 'GET') {
-            KPIController::totalMarcas();
-        } else {
-            http_response_code(405);
-            echo json_encode(["message" => "Método no permitido para /api/kpi/resumen-stock"]);
-        }
-        break;
-
-    case '/api/kpi/productos-por-vencer':
-        if ($method === 'GET') {
-            KPIController::productosPorVencer();
-        } else {
-            http_response_code(405);
-            echo json_encode(["message" => "Método no permitido para /api/kpi/resumen-stock"]);
-        }
-        break;
-    
-    case '/api/kpi/reporte-pdf':
-        if ($method === 'GET') {
-            KPIController::generarReportePDF();
-        } else {
-            http_response_code(405);
-            echo json_encode(["message" => "Método no permitido para /api/kpi/reporte-pdf"]);
-        }
-        break;
-
-
-
-//FIN DE AGREGADO POR BIANQUIS
 
     default:
         http_response_code(404);

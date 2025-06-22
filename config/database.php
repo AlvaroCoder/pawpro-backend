@@ -7,12 +7,12 @@
      * https://www.php.net/manual/en/intro.pdo.php
      */
     class Database{
-        private $host = "127.0.0.1";
-        private $port = "3307";
+        private $host = "localhost";
+        private $port = 3306;
         private $db_name = "pawpro_database";
         private $username = "root";
         
-        private $password = "123456";
+        private $password = "root123456";
         public $conn;
 
         public function getConnection(){
@@ -20,7 +20,7 @@
 
             try {
                 $this->conn = new PDO(
-                    "mysql:host=" . $this->host . ";port=" . $this->port  .  ";dbname=" . $this->db_name . ";charset=utf8mb4",
+                    "mysql:host=" . $this->host .  ";dbname=" . $this->db_name . ";charset=utf8mb4",
                     $this->username,
                     $this->password
                 );
