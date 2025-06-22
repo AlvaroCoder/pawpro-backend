@@ -130,9 +130,9 @@ switch ($baseRouteForSwitch) {
 
     case '/api/productos':
         $controller = new ProductoController();
-        if ($method === 'POST' && $resourceId === null) {
+        if ($method === 'POST' &&  is_null($resourceId)) {
             $controller->crearProducto();
-        } elseif ($method === 'GET' && $resourceId === null) {
+        } elseif ($method === 'GET' && is_null($resourceId)) {
             $controller->listarProductos();
         } elseif ($method === 'GET' && $resourceId !== null) {
             $controller->obtenerProductoPorId($resourceId);
