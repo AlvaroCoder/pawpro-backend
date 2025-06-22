@@ -98,6 +98,7 @@ switch ($baseRouteForSwitch) {
             echo json_encode(["message" => "Método no permitido"]);
         }
         break;
+        
     case '/api/subcategorias':
         if ($method === 'GET') {
             $controller = new Controlador();
@@ -164,6 +165,68 @@ switch ($baseRouteForSwitch) {
         }
         break;
 
+         //AGREGADO POR BIANQUISS
+
+    //caso para los productos con mas stocks
+
+    case '/api/kpi/producto-mas-stock':
+        if ($method === 'GET') {
+            KPIController::tresConMayorStock();
+        } else {
+            http_response_code(405);
+            echo json_encode(["message" => "Método no permitido para /api/kpi/resumen-stock"]);
+        }
+        break;
+//caso para los productos con mensos stock
+
+    case '/api/kpi/productos-menos-stock':
+        if ($method === 'GET') {
+            KPIController::tresConMenorStock();
+        } else {
+            http_response_code(405);
+            echo json_encode(["message" => "Método no permitido para /api/kpi/resumen-stock"]);
+        }
+        break;
+
+    case '/api/kpi/total-productos':
+        if ($method === 'GET') {
+            KPIController::totalProductos();
+        } else {
+            http_response_code(405);
+            echo json_encode(["message" => "Método no permitido para /api/kpi/resumen-stock"]);
+        }
+        break;
+
+    case '/api/kpi/total-marcas':
+        if ($method === 'GET') {
+            KPIController::totalMarcas();
+        } else {
+            http_response_code(405);
+            echo json_encode(["message" => "Método no permitido para /api/kpi/resumen-stock"]);
+        }
+        break;
+
+    case '/api/kpi/productos-por-vencer':
+        if ($method === 'GET') {
+            KPIController::productosPorVencer();
+        } else {
+            http_response_code(405);
+            echo json_encode(["message" => "Método no permitido para /api/kpi/resumen-stock"]);
+        }
+        break;
+    
+    case '/api/kpi/reporte-pdf':
+        if ($method === 'GET') {
+            KPIController::generarReportePDF();
+        } else {
+            http_response_code(405);
+            echo json_encode(["message" => "Método no permitido para /api/kpi/reporte-pdf"]);
+        }
+        break;
+
+
+
+//FIN DE AGREGADO POR BIANQUIS
     default:
         http_response_code(404);
         echo json_encode([
