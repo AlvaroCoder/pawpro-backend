@@ -1,11 +1,16 @@
 <?php
 // Incluimos los archivos necesarios
 require_once __DIR__ . '/../../config/database.php'; // Para la conexión a la BD
-require_once __DIR__ . '/../models/FacturaCompra.php'; // Modelo FacturaCompra
-require_once __DIR__ . '/../models/Producto.php'; 
-require_once __DIR__ . '/../models/LoteProducto.php'; 
+require_once __DIR__ . '/../models/FacturaCompra.php'; // Modelo FacturaCompra (el consolidado)
+require_once __DIR__ . '/../models/LoteProducto.php'; // Modelo LoteProducto (asumiendo que existe y funciona)
+require_once __DIR__ . '/../models/Producto.php'; // Modelo Producto (asumiendo que existe y funciona)
 
 class FacturaCompraController {
+
+    /**
+     * Registra una nueva factura de compra con sus detalles y lotes asociados.
+     * Corresponde a POST /api/facturas-compra
+     */
     public function registrarNuevaFactura() {
         // 1. Obtener los datos del cuerpo de la solicitud (payload JSON)
         $inputData = json_decode(file_get_contents("php://input"));
@@ -31,13 +36,27 @@ class FacturaCompraController {
         $conn = $database->getConnection();
 
         if (!$conn) {
-            http_response_code(500);
+            http_response_code(503); // Service Unavailable
             echo json_encode(['message' => 'Error interno del servidor: No se pudo conectar a la base de datos.']);
             return;
         }
 
         $facturaCompraModel = new FacturaCompra($conn);
-        $loteProductoModel = new LoteProducto($conn);
+        $loteProductoModel = new LoteProducto($conn); // Asumiendo que LoteProducto existe y se inicializa así
+
+        // Calcular el monto total de la factura a partir de los ítems
+        $totalFactura = 0;
+        foreach ($inputData->items as $item) {
+            // Validar existencia y tipo de datos para cada item antes de sumar
+            if (!isset($item->cantidad_comprada) || !is_numeric($item->cantidad_comprada) ||
+                !isset($item->precio_compra_unitario_factura) || !is_numeric($item->precio_compra_unitario_factura)) {
+                http_response_code(400);
+                echo json_encode(['message' => 'Error: Datos de item de factura incompletos o inválidos para el cálculo del total.']);
+                return;
+            }
+            $totalFactura += floatval($item->cantidad_comprada) * floatval($item->precio_compra_unitario_factura);
+        }
+
         // Asignar datos del input al modelo para el encabezado
         $facturaCompraModel->numero_factura = $inputData->numero_factura;
         $facturaCompraModel->proveedor_id = $inputData->proveedor_id;
@@ -45,6 +64,7 @@ class FacturaCompraController {
         $facturaCompraModel->usuario_id = $inputData->usuario_id;
         $facturaCompraModel->observaciones = isset($inputData->observaciones) ? $inputData->observaciones : null;
         $facturaCompraModel->estado = 'registrada'; // Estado por defecto al crear
+        $facturaCompraModel->monto_total = $totalFactura; // Asignar el monto total calculado
 
         try {
             $conn->beginTransaction();
@@ -54,16 +74,20 @@ class FacturaCompraController {
 
                 // --- INICIO: PROCESAR ITEMS DE LA FACTURA ---
                 foreach ($inputData->items as $item) {
-                    // Validación básica del item
-                    if (!isset($item->producto_id) || !isset($item->codigo_lote) || !isset($item->cantidad_comprada) || !isset($item->precio_compra_unitario_factura) || !isset($item->fecha_vencimiento)) {
-                        throw new Exception("Datos incompletos para uno de los items de la factura.");
+                    // Validación más estricta del item
+                    if (!isset($item->producto_id) || !is_numeric($item->producto_id) ||
+                        !isset($item->codigo_lote) || empty(trim($item->codigo_lote)) ||
+                        !isset($item->cantidad_comprada) || !is_numeric($item->cantidad_comprada) ||
+                        !isset($item->precio_compra_unitario_factura) || !is_numeric($item->precio_compra_unitario_factura) ||
+                        !isset($item->fecha_vencimiento) || empty(trim($item->fecha_vencimiento))) {
+                        throw new Exception("Datos incompletos o mal formados para uno de los items de la factura.");
                     }
 
                     // 1. Crear el Lote
                     $loteProductoModel->producto_id = $item->producto_id;
-                    $loteProductoModel->codigo_lote = $item->codigo_lote;
+                    $loteProductoModel->codigo_lote = trim($item->codigo_lote);
                     $loteProductoModel->cantidad_actual = $item->cantidad_comprada; // La cantidad comprada es la cantidad actual del nuevo lote
-                    $loteProductoModel->fecha_vencimiento = $item->fecha_vencimiento;
+                    $loteProductoModel->fecha_vencimiento = trim($item->fecha_vencimiento);
                     $loteProductoModel->precio_compra_unitario = $item->precio_compra_unitario_factura;
                     $loteProductoModel->fecha_ingreso = $inputData->fecha_compra; // Usamos la fecha de compra como fecha de ingreso del lote
 
@@ -89,7 +113,8 @@ class FacturaCompraController {
                 http_response_code(201); // Created
                 echo json_encode([
                     'message' => 'Factura de compra y sus detalles registrados exitosamente.',
-                    'factura_compra_id' => $factura_compra_id_generado
+                    'factura_compra_id' => $factura_compra_id_generado,
+                    'monto_total_registrado' => $totalFactura
                 ]);
 
             } else {
@@ -102,8 +127,14 @@ class FacturaCompraController {
             if ($conn->inTransaction()) {
                 $conn->rollBack();
             }
-            http_response_code(500);
-            echo json_encode(['message' => 'Error en la base de datos al registrar la factura: ' . $e->getMessage()]);
+            // Manejar errores de unicidad para numero_factura y proveedor_id
+            if ($e->getCode() == '23000' && strpos($e->getMessage(), 'uq_proveedor_numero_factura') !== false) {
+                 http_response_code(409); // Conflict
+                 echo json_encode(['message' => 'Ya existe una factura con este número para este proveedor.', 'error_detail' => $e->getMessage()]);
+            } else {
+                http_response_code(500);
+                echo json_encode(['message' => 'Error en la base de datos al registrar la factura: ' . $e->getMessage()]);
+            }
         } catch (Exception $e) { // Captura las excepciones personalizadas de validación de items
             if ($conn->inTransaction()) {
                 $conn->rollBack();
@@ -112,7 +143,8 @@ class FacturaCompraController {
             echo json_encode(['message' => 'Error al procesar los items de la factura: ' . $e->getMessage()]);
         }
     }
-/**
+
+    /**
      * Lista todos los encabezados de las facturas de compra.
      * Corresponde a GET /api/facturas-compra
      */
@@ -222,7 +254,7 @@ class FacturaCompraController {
              echo json_encode(['message' => 'Factura de compra con ID ' . $factura_id_sanitizada . ' no encontrada.']);
              return;
         }
-        
+
         $nuevasObservaciones = isset($inputData->observaciones) ? trim($inputData->observaciones) : null;
 
         try {

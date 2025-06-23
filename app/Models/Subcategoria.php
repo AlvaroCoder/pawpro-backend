@@ -2,96 +2,133 @@
     // Utilizamos el modelo de tipo PDO para nuestra tabla de Subcategorias
     require_once 'config/database.php';
     // El modelo ingresa la query a la base de datos
-    class Subcategoria{
-        // Propiedades
-        public $id;
-        public $nombreCategoria;
-        public $descripcion;
-        public $conn;
+    
+class Subcategoria {
+    private $conn;
+    private $table_name = "Subcategoria";
 
-        public function __construct() {
-            $database = new Database();
-            $this->conn = $database->getConnection();
-        }
+    // Propiedades del objeto Subcategoria
+    public $id_subcategoria;
+    public $id_categoria;
+    public $nombre_subcategoria;
+    public $descripcion;
+    public $fecha_creacion;
+    public $fecha_modificacion;
 
-        public function obtenerSubcategorias() {
-            $stmt = $this->conn->query("SELECT * FROM Subcategoria");
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        }
-
-        /**
-         * Obtener Subategoría por ID (seguro contra SQL injection)
-         */
-        public function obtenerPorId($idSubcategoria) {
-            $sql = "SELECT * FROM Subcategoria WHERE id_subcategoria = :id";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bindParam(':id', $idSubcategoria, PDO::PARAM_INT);
-            $stmt->execute();
-            return $stmt->fetch(PDO::FETCH_ASSOC);
-        }
-
-        /**
-         * Crear nueva ategoría
-         */
-        public function crearSubcategoria(
-            $idCategoria,
-            $nombre, 
-            $descripcion) 
-        {
-            $sql = "INSERT INTO Subcategoria 
-            (id_categoria, nombre_subcategoria, descripcion) VALUES (:id_categoria, :nombre, :descripcion)";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bindParam(':id_categoria',$idCategoria);
-            $stmt->bindParam(':nombre', $nombre);
-            $stmt->bindParam(':descripcion', $descripcion);
-
-            if ($stmt->execute()) {
-                $this->id = $this->conn->lastInsertId();
-                return $this->obtenerPorId($this->id);
-            }
-            return false;
-        }
-
-        public function actualizarSubcategoria($idCategoria, $nombreCategoria, $descripcion){
-            if (empty($idCategoria) || !is_numeric($idCategoria)) {
-                throw new InvalidArgumentException("ID de categoría inválido");
-            }
-        
-            if (empty($nombreCategoria)) {
-                throw new InvalidArgumentException("El nombre de categoría no puede estar vacío");
-            }
-
-            $sql = "UPDATE Categoria SET nombre_categoria=:nombre_categoria, descripcion=:descripcion, fecha_modificacion=CURRENT_TIMESTAMP WHERE id_categoria=:id_categoria";
-            $stmt = $this->conn->prepare($sql);
-
-            $nombreCategoria = htmlspecialchars(strip_tags($nombreCategoria));
-            $descripcion = htmlspecialchars(strip_tags($descripcion));
-            $idCategoria = (int)$idCategoria;
-
-
-            $stmt->bindParam(':nombre_categoria',$nombreCategoria);
-            $stmt->bindParam(':descripcion',$descripcion);
-            $stmt->bindParam(':id_categoria', $idCategoria);
-
-            if ($stmt->execute()) {
-                return $this->obtenerPorId($idCategoria);
-            }
-            return false;
-        }
-
-        public function deleteCategoriaPorId($idCategoria){
-            if (!is_numeric($idCategoria)) {
-                throw new InvalidArgumentException("ID de categoría inválido");
-            }
-            $sql = "DELETE FROM Categoria WHERE id_categoria = :id_categoria";
-            $stmt = $this->conn->prepare($sql);
-
-            $stmt->bindParam(':id_categoria', $idCategoria);
-
-            if ($stmt->execute()) {
-                return true;
-            }
-            return false;
-        }
+    public function __construct($db) {
+        $this->conn = $db;
     }
+
+    /**
+     * Obtiene todas las subcategorías con el nombre de su categoría asociada.
+     * @return array Un array asociativo de subcategorías.
+     */
+    public function obtenerSubcategorias() {
+        $query = "SELECT sc.id_subcategoria, sc.nombre_subcategoria, sc.descripcion,
+                         c.id_categoria, c.nombre_categoria
+                  FROM " . $this->table_name . " sc
+                  JOIN Categoria c ON sc.id_categoria = c.id_categoria
+                  ORDER BY sc.nombre_subcategoria ASC";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Crea una nueva subcategoría.
+     * @param int $idCategoria El ID de la categoría a la que pertenece esta subcategoría.
+     * @param string $nombreSubcategoria El nombre de la subcategoría.
+     * @param string $descripcion La descripción de la subcategoría.
+     * @return bool True si la subcategoría se creó exitosamente, false en caso contrario.
+     * @throws Exception Si el nombre o la descripción de la subcategoría están vacíos.
+     */
+    public function crearSubcategoria($idCategoria, $nombreSubcategoria, $descripcion) {
+        // Validación básica y sanitización
+        if (empty(trim($nombreSubcategoria)) || empty(trim($descripcion))) {
+            throw new Exception("Nombre y descripción de la subcategoría no pueden estar vacíos.");
+        }
+
+        $query = "INSERT INTO " . $this->table_name . " SET id_categoria=:id_categoria, nombre_subcategoria=:nombre_subcategoria, descripcion=:descripcion";
+        $stmt = $this->conn->prepare($query);
+
+        $idCategoria_clean = htmlspecialchars(strip_tags($idCategoria));
+        $nombreSubcategoria_clean = htmlspecialchars(strip_tags(trim($nombreSubcategoria)));
+        $descripcion_clean = htmlspecialchars(strip_tags(trim($descripcion)));
+
+        $stmt->bindParam(":id_categoria", $idCategoria_clean, PDO::PARAM_INT);
+        $stmt->bindParam(":nombre_subcategoria", $nombreSubcategoria_clean);
+        $stmt->bindParam(":descripcion", $descripcion_clean);
+
+        if ($stmt->execute()) {
+            $this->id_subcategoria = $this->conn->lastInsertId();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Actualiza una subcategoría existente.
+     * @param int $idSubcategoria El ID de la subcategoría a actualizar.
+     * @param string $nombreSubcategoria El nuevo nombre de la subcategoría.
+     * @param string $descripcion La nueva descripción de la subcategoría.
+     * @return bool True si la subcategoría se actualizó exitosamente, false en caso contrario.
+     * @throws Exception Si el nombre o la descripción de la subcategoría están vacíos.
+     */
+    public function actualizarSubcategoria($idSubcategoria, $nombreSubcategoria, $descripcion) {
+        // Validación básica y sanitización
+        if (empty(trim($nombreSubcategoria)) || empty(trim($descripcion))) {
+            throw new Exception("Nombre y descripción de la subcategoría no pueden estar vacíos.");
+        }
+
+        $query = "UPDATE " . $this->table_name . " SET nombre_subcategoria=:nombre_subcategoria, descripcion=:descripcion, fecha_modificacion=CURRENT_TIMESTAMP WHERE id_subcategoria=:id_subcategoria";
+        $stmt = $this->conn->prepare($query);
+
+        $nombreSubcategoria_clean = htmlspecialchars(strip_tags(trim($nombreSubcategoria)));
+        $descripcion_clean = htmlspecialchars(strip_tags(trim($descripcion)));
+        $idSubcategoria_clean = htmlspecialchars(strip_tags($idSubcategoria));
+
+        $stmt->bindParam(":nombre_subcategoria", $nombreSubcategoria_clean);
+        $stmt->bindParam(":descripcion", $descripcion_clean);
+        $stmt->bindParam(":id_subcategoria", $idSubcategoria_clean, PDO::PARAM_INT);
+
+        if ($stmt->execute()) {
+            return $stmt->rowCount() > 0;
+        }
+        return false;
+    }
+
+    /**
+     * Elimina una subcategoría por su ID.
+     * @param int $idSubcategoria El ID de la subcategoría a eliminar.
+     * @return bool True si la subcategoría se eliminó exitosamente, false en caso contrario.
+     */
+    public function eliminarSubcategoria($idSubcategoria) {
+        $query = "DELETE FROM " . $this->table_name . " WHERE id_subcategoria = :id_subcategoria";
+        $stmt = $this->conn->prepare($query);
+
+        $idSubcategoria_clean = htmlspecialchars(strip_tags($idSubcategoria));
+        $stmt->bindParam(":id_subcategoria", $idSubcategoria_clean, PDO::PARAM_INT);
+
+        if ($stmt->execute()) {
+            return $stmt->rowCount() > 0;
+        }
+        return false;
+    }
+
+    /**
+     * Busca una subcategoría por su ID.
+     * @param int $idSubcategoria El ID de la subcategoría a buscar.
+     * @return array|false Un array asociativo con los datos de la subcategoría o false si no se encuentra.
+     */
+    public function buscarPorId($idSubcategoria) {
+        $query = "SELECT id_subcategoria, nombre_subcategoria, descripcion, id_categoria
+                  FROM " . $this->table_name . "
+                  WHERE id_subcategoria = :id_subcategoria LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":id_subcategoria", $idSubcategoria, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+}
 ?>

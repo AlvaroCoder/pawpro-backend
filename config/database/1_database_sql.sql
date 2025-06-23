@@ -192,8 +192,8 @@ CREATE TABLE IF NOT EXISTS `pawpro_database`.`Productos` (
   `nombre_producto` VARCHAR(255) NOT NULL,
   `descripcion` TEXT NULL DEFAULT NULL,
   `marca_id` INT NOT NULL,
-  `subcategoria_id` INT NOT NULL,
-  `presentacion_id` INT NOT NULL,
+  `subcategoria_id` INT NULL DEFAULT NULL, -- CORREGIDO: Ahora permite NULL
+  `presentacion_id` INT NULL DEFAULT NULL, -- CORREGIDO: Ahora permite NULL
   `precio_venta_unitario` DECIMAL(10,2) NOT NULL DEFAULT '0.00',
   `stock_minimo` INT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'Umbral para alerta de bajo stock',
   `stock_maximo` INT UNSIGNED NULL DEFAULT NULL COMMENT 'Opcional, para control de sobre-stock',
@@ -215,12 +215,12 @@ CREATE TABLE IF NOT EXISTS `pawpro_database`.`Productos` (
   CONSTRAINT `fk_productos_subcategoria`
     FOREIGN KEY (`subcategoria_id`)
     REFERENCES `pawpro_database`.`Subcategoria` (`id_subcategoria`)
-    ON DELETE RESTRICT
+    ON DELETE SET NULL -- Cambiado de RESTRICT a SET NULL para consistencia
     ON UPDATE CASCADE,
   CONSTRAINT `fk_productos_presentacion`
     FOREIGN KEY (`presentacion_id`)
     REFERENCES `pawpro_database`.`Presentacion` (`id_presentacion`)
-    ON DELETE RESTRICT
+    ON DELETE SET NULL -- Cambiado de RESTRICT a SET NULL para consistencia
     ON UPDATE CASCADE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
