@@ -20,7 +20,7 @@
         }
 
         /**
-         * Obtener categoría por ID (seguro contra SQL injection)
+         * Obtener Subategoría por ID (seguro contra SQL injection)
          */
         public function obtenerPorId($idSubcategoria) {
             $sql = "SELECT * FROM Subcategoria WHERE id_subcategoria = :id";
@@ -31,7 +31,7 @@
         }
 
         /**
-         * Crear nueva categoría
+         * Crear nueva ategoría
          */
         public function crearSubcategoria(
             $idCategoria,
