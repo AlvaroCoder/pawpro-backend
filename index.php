@@ -24,6 +24,8 @@ require_once 'app/controllers/UsuarioController.php';
 require_once 'app/controllers/ProductoController.php';
 require_once 'app/controllers/FacturaCompraController.php';
 require_once 'app/controllers/SubcategoriasController.php';
+require_once 'app/controllers/KPIController.php';
+require_once 'app/controllers/ClienteController.php';
 
 // --- RUTA Y MÉTODO ---
 $request = $_SERVER['REQUEST_URI'];
@@ -46,7 +48,10 @@ elseif (preg_match('/^\/api\/facturas-compra\/(\d+)$/', $pathWithoutQuery, $matc
     $resourceId = $matchesFacturas[1]; // ID capturado
     $baseRouteForSwitch = '/api/facturas-compra'; // Normalizamos la ruta para el switch
 }
-
+elseif (preg_match('/^\/api\/clientes\/(\d+)$/', $pathWithoutQuery, $matchesClientes)) {
+    $resourceId = $matchesClientes[1];
+    $baseRouteForSwitch = '/api/clientes';
+}
 // --- ENRUTADOR ---
 switch ($baseRouteForSwitch) {
     case '/users':
@@ -224,6 +229,20 @@ switch ($baseRouteForSwitch) {
         }
         break;
 
+        case '/api/clientes':
+            $controller = new ClienteController();
+        
+            if ($method === 'GET' && $resourceId === null) {
+                $controller->listarClientes();
+            } elseif ($method === 'POST') {
+                $controller->crearCliente();
+            } elseif ($method === 'PUT' && $resourceId !== null) {
+                $controller->actualizarCliente($resourceId);
+            } else {
+                http_response_code(405);
+                echo json_encode(["message" => "Método no permitido o combinación inválida para /api/clientes."]);
+            }
+        break;
 
 
 //FIN DE AGREGADO POR BIANQUIS
