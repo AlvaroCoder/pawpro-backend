@@ -5,9 +5,9 @@ SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 
 -- -----------------------------------------------------
--- Schema mydb
+-- Schema pawpro_database
 -- -----------------------------------------------------
-
+CREATE DATABASE IF NOT EXISTS `pawpro_database`;
 USE `pawpro_database` ;
 
 -- -----------------------------------------------------
@@ -129,6 +129,61 @@ COLLATE = utf8mb4_unicode_ci
 COMMENT = 'Marcas de los productos comercializados';
 
 -- -----------------------------------------------------
+-- Table `pawpro_database`.`Categoria`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `pawpro_database`.`Categoria` (
+  `id_categoria` INT NOT NULL AUTO_INCREMENT,
+  `nombre_categoria` VARCHAR(100) NOT NULL,
+  `descripcion` TEXT NULL DEFAULT NULL,
+  `fecha_creacion` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `fecha_modificacion` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_categoria`),
+  UNIQUE INDEX `nombre_categoria_UNIQUE` (`nombre_categoria` ASC) VISIBLE)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci
+COMMENT = 'Categorías de productos (ej: Medicamentos, Alimentos)';
+
+-- -----------------------------------------------------
+-- Table `pawpro_database`.`Subcategoria`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `pawpro_database`.`Subcategoria` (
+  `id_subcategoria` INT NOT NULL AUTO_INCREMENT,
+  `id_categoria` INT NOT NULL,
+  `nombre_subcategoria` VARCHAR(100) NOT NULL,
+  `descripcion` TEXT NULL DEFAULT NULL,
+  `fecha_creacion` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `fecha_modificacion` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_subcategoria`),
+  UNIQUE INDEX `uq_subcategoria_categoria_nombre` (`id_categoria` ASC, `nombre_subcategoria` ASC) VISIBLE,
+  INDEX `fk_subcategoria_categoria_idx` (`id_categoria` ASC) VISIBLE,
+  CONSTRAINT `fk_subcategoria_categoria`
+    FOREIGN KEY (`id_categoria`)
+    REFERENCES `pawpro_database`.`Categoria` (`id_categoria`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci
+COMMENT = 'Subcategorías de productos (ej: Antibióticos, Alimento Seco)';
+
+-- -----------------------------------------------------
+-- Table `pawpro_database`.`Presentacion`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `pawpro_database`.`Presentacion` (
+  `id_presentacion` INT NOT NULL AUTO_INCREMENT,
+  `nombre_presentacion` VARCHAR(100) NOT NULL,
+  `fecha_creacion` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `fecha_modificacion` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_presentacion`),
+  UNIQUE INDEX `nombre_presentacion_UNIQUE` (`nombre_presentacion` ASC) VISIBLE)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_unicode_ci
+COMMENT = 'Tipos de presentación de los productos (ej: Caja, Frasco, Bolsa)';
+
+
+-- -----------------------------------------------------
 -- Table `pawpro_database`.`Productos`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `pawpro_database`.`Productos` (
@@ -137,6 +192,8 @@ CREATE TABLE IF NOT EXISTS `pawpro_database`.`Productos` (
   `nombre_producto` VARCHAR(255) NOT NULL,
   `descripcion` TEXT NULL DEFAULT NULL,
   `marca_id` INT NOT NULL,
+  `subcategoria_id` INT NOT NULL,
+  `presentacion_id` INT NOT NULL,
   `precio_venta_unitario` DECIMAL(10,2) NOT NULL DEFAULT '0.00',
   `stock_minimo` INT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'Umbral para alerta de bajo stock',
   `stock_maximo` INT UNSIGNED NULL DEFAULT NULL COMMENT 'Opcional, para control de sobre-stock',
@@ -147,11 +204,22 @@ CREATE TABLE IF NOT EXISTS `pawpro_database`.`Productos` (
   PRIMARY KEY (`producto_id`),
   UNIQUE INDEX `codigo_producto` (`codigo_producto` ASC) VISIBLE,
   INDEX `idx_marca` (`marca_id` ASC) VISIBLE,
-  INDEX `idx_tipo_producto` (`tipo_producto_id` ASC) VISIBLE,
+  INDEX `idx_subcategoria` (`subcategoria_id` ASC) VISIBLE,
+  INDEX `idx_presentacion` (`presentacion_id` ASC) VISIBLE,
   INDEX `idx_nombre_producto` (`nombre_producto` ASC) VISIBLE,
   CONSTRAINT `productos_ibfk_1`
     FOREIGN KEY (`marca_id`)
     REFERENCES `pawpro_database`.`Marcas` (`marca_id`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_productos_subcategoria`
+    FOREIGN KEY (`subcategoria_id`)
+    REFERENCES `pawpro_database`.`Subcategoria` (`id_subcategoria`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_productos_presentacion`
+    FOREIGN KEY (`presentacion_id`)
+    REFERENCES `pawpro_database`.`Presentacion` (`id_presentacion`)
     ON DELETE RESTRICT
     ON UPDATE CASCADE)
 ENGINE = InnoDB
